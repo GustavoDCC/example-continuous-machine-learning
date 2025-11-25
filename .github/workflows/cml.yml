@@ -1,9 +1,21 @@
-train-and-report:
-  image: iterativeai/cml:0-dvc2-base1
-  script:
-    - pip install -r requirements.txt
-    - python train.py # generate plot.png
-    # Create CML report
-    - cat metrics.txt >> report.md
-    - echo '![](./plot.png "Confusion Matrix")' >> report.md
-    - cml comment create report.md
+name: CML
+on: [push]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: iterativeai/cml:0-dvc2-base1
+    services:
+      docker:
+        image: docker:dind
+    steps:
+      - uses: actions/checkout@v2
+      - name: Train and report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pip install -r requirements.txt
+          python train.py
+          cat metrics.txt >> report.md
+          echo '![](./plot.png "Confusion Matrix")' >> report.md
+          cml comment create report.md
